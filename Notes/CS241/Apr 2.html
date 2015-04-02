@@ -1,0 +1,420 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<style>
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    color: #737373;
+    background-color: white;
+    margin: 10px 13px 10px 13px;
+}
+table {
+	margin: 10px 0 15px 0;
+	border-collapse: collapse;
+}
+td,th {	
+	border: 1px solid #ddd;
+	padding: 3px 10px;
+}
+th {
+	padding: 5px 10px;	
+}
+
+a {
+    color: #0069d6;
+}
+a:hover {
+    color: #0050a3;
+    text-decoration: none;
+}
+a img {
+    border: none;
+}
+p {
+    margin-bottom: 9px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #404040;
+    line-height: 36px;
+}
+h1 {
+    margin-bottom: 18px;
+    font-size: 30px;
+}
+h2 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 18px;
+}
+h4 {
+    font-size: 16px;
+}
+h5 {
+    font-size: 14px;
+}
+h6 {
+    font-size: 13px;
+}
+hr {
+    margin: 0 0 19px;
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+blockquote {
+    padding: 13px 13px 21px 15px;
+    margin-bottom: 18px;
+    font-family:georgia,serif;
+    font-style: italic;
+}
+blockquote:before {
+    content:"\201C";
+    font-size:40px;
+    margin-left:-10px;
+    font-family:georgia,serif;
+    color:#eee;
+}
+blockquote p {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+code, pre {
+    font-family: Monaco, Andale Mono, Courier New, monospace;
+}
+code {
+    background-color: #fee9cc;
+    color: rgba(0, 0, 0, 0.75);
+    padding: 1px 3px;
+    font-size: 12px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+pre {
+    display: block;
+    padding: 14px;
+    margin: 0 0 18px;
+    line-height: 16px;
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+pre code {
+    background-color: #fff;
+    color:#737373;
+    font-size: 11px;
+    padding: 0;
+}
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:10px auto;
+    }
+}
+@media print {
+	body,code,pre code,h1,h2,h3,h4,h5,h6 {
+		color: black;
+	}
+	table, pre {
+		page-break-inside: avoid;
+	}
+}
+</style>
+<title>Last day</title>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({tex2jax:{inlineMath:[['$$$','$$$']]}});</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+<body>
+<p>CS241                                               Apr 2 2015</p>
+
+<h5>Last day</h5>
+
+<p>More optimization</p>
+
+<ul>
+<li> inlining</li>
+<li> tail call optimization</li>
+</ul>
+
+
+<p>Memory menagement</p>
+
+<p>Scope and Extent</p>
+
+<p>Stack frame layout:</p>
+
+<table>
+<thead>
+<tr>
+<th> code  </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> heap  </td>
+</tr>
+<tr>
+<td>       </td>
+</tr>
+<tr>
+<td>       </td>
+</tr>
+<tr>
+<td> stack </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>How do we implement:</p>
+
+<p><code>new</code> and <code>delete</code> / <code>malloc</code> and <code>free</code>?</p>
+
+<ul>
+<li> many implementations</li>
+</ul>
+
+
+<p>An Implementation: free lists</p>
+
+<ul>
+<li> maintain a linked list of ptrs into the heap of free memory.</li>
+</ul>
+
+
+<p>Initially: free list has one entry.
+Suppose heap is 1k (1024 bytes)</p>
+
+<pre><code>free -----&gt; |1024|     |
+              |
+              V 
+            memory of 1024 bytes (entire heap)
+</code></pre>
+
+<p>Suppose 16 bytes are allocated.</p>
+
+<ul>
+<li> actually allocate 20 bytes
+
+<ul>
+<li> 16 bytes + 1 word (int) for bookkeeping</li>
+</ul>
+</li>
+</ul>
+
+
+<pre><code>| 16 | .............. |
+     ^
+     return a ptr to the word just after size 
+</code></pre>
+
+<p>Free list contains the rest of the heap</p>
+
+<pre><code>free -----&gt; |1004| .......... |
+               |
+               V
+               1004 bytes of memory
+</code></pre>
+
+<p>Now suppose we request 28 bytes.</p>
+
+<ul>
+<li> actually allocate 32 (28 + 4 for bookkeeping)</li>
+</ul>
+
+
+<pre><code>Allocated memory:
+|16| ........ |
+|28| .................. |
+Unallocated memory:
+free -&gt; | 972 | ............................................................. |
+        |&lt;----------------------------- 972 bytes ---------------------------&gt;|
+</code></pre>
+
+<p>Suppose the first block is freed, e.g. <code>free(p)</code></p>
+
+<ul>
+<li> free/malloc going to check <code>p[-1]</code> for the size allocated.</li>
+<li> We know how much memory to reclaim. So add this memory to the free list.</li>
+</ul>
+
+
+<pre><code>free-&gt;| 20 | ........ | -&gt; | 972 | ........................... |
+      |&lt;-- 20 bytes -&gt;|    &lt;------------ 972 bytes ------------&gt;
+</code></pre>
+
+<p>Suppose the other block is freed:</p>
+
+<pre><code>free-&gt;| 20 | ........ | -&gt; |32|..........|-&gt; | 972 | ........................ |
+      |&lt;-- 20 bytes -&gt;|    &lt;-- 32 bytes -&gt;   &lt;--------- 972 bytes ------------&gt;
+</code></pre>
+
+<p>But we can notice that the blocks are all adjacent in memory.
+*   we can merge them</p>
+
+<pre><code>free -----&gt; |1024| ................... |
+            &lt;--------- 1024 bytes -----&gt;
+</code></pre>
+
+<p>Note: Repeated allocations and deallocations we can create 'holes' in memory</p>
+
+<p>Suppose we do: alloc 20 bytes, alloc 40, alloc 20, dealloc 20, alloc 5</p>
+
+<pre><code>| 5 bytes (using) | 15 bytes (empty) | 40 bytes (using) | 20 bytes (using) |
+</code></pre>
+
+<p>This is fragmentation.</p>
+
+<p><strong>Fragmentation</strong>: even if n bytes of memory are freed might not be able to allocate a block of n bytes.</p>
+
+<p>To reduce fragmentation: don't choose the first block of memory that fits the request.</p>
+
+<p>Suppose we had:</p>
+
+<pre><code>| ///// | 20 | ///// | 15 | ////// | 100 |
+</code></pre>
+
+<p>Now alloc 10: Where to put it?</p>
+
+<ul>
+<li><em>best fit</em>: put it in 15 byte block (more space efficient)</li>
+<li><em>first fit</em>: put it in 20 byte block (more time efficient)</li>
+</ul>
+
+
+<p>Issue: Searching RAM/Heap takes time.
+*   memory allocation isn't free.</p>
+
+<h5>Implicit Memory Management</h5>
+
+<p>Garbage collection (Java, Racket, Python)</p>
+
+<ul>
+<li>Runtime environment reclaims memory when it is no longer accessible</li>
+</ul>
+
+
+<pre><code>int f(){
+    myObj obj = new myObj;
+        ... 
+}
+</code></pre>
+
+<p>Obj goes out of scope at the end of function <code>f()</code>; memory is reclaimed since no longer accessible.</p>
+
+<pre><code>int g(){
+    myObj obj2;
+    if (x == y){
+        myObj obj1 = new myObj;
+        obj2 = obj1;
+    }
+}
+</code></pre>
+
+<p>At the end of if statement, <code>obj1</code> goes out of scope, but not reclaimed since <code>obj2</code> holds the memory. However, when <code>obj2</code> goes out of scope, no longer accessible => GC reclaims.</p>
+
+<p>GC Techniques:</p>
+
+<ol>
+<li><p><strong>Mark and sweep</strong></p>
+
+<ul>
+<li>Scan the program/heap for ptrs</li>
+<li>For each ptr found, mark the heap block it points to
+
+<ul>
+<li>if the block contains ptrs then repeat</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Once done: scan the entire heap and reclaim unmarked memory, then clear all marks.</p></li>
+<li><p><strong>Referance Counting</strong></p>
+
+<ul>
+<li>for each heap block, tracking number of pointers that point to it. (it's reference count)</li>
+<li>if a block's reference count reaches 0, then we can reclaim it.
+
+<ul>
+<li>means we must monitor every ptr and update ref counts (decrements old, increments new) when ptrs are reassigned.</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Problem: circular referances.</p></li>
+</ol>
+
+
+<pre><code>| /////// |  | //////// |                 | //////// |  | //////////|
+^           |                             ^            |
+|           |-----------------------------|            |
+|------------------------------------------------------|
+</code></pre>
+
+<ol>
+<li><p><strong>Copying GC</strong></p>
+
+<p>Heap is split into halves: <em>from</em> and <em>to</em>.</p>
+
+<ul>
+<li>Only allocate from <em>from</em></li>
+<li>when <em>from</em> is full, copy all reachable data, copy that data from <em>from</em> to <em>to</em>, then reverse roles.
+
+<ul>
+<li><em>from</em> becomes <em>to</em></li>
+<li><em>to</em> becomes <em>from</em></li>
+</ul>
+</li>
+</ul>
+
+
+<p>Benefit: Built-in compaction</p>
+
+<ul>
+<li>Guaranteed that after the swap all reachable data is in contiguous memory.
+
+<ul>
+<li>little to no fragmentation</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Problem: Only the half of heap available at one time.</p></li>
+</ol>
+
+</body>
+</html>
